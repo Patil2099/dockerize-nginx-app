@@ -1,0 +1,19 @@
+sudo: required
+services:
+  - docker
+before_install:
+  - docker build -t evil2097/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true evil2097/react-test npm run test
+
+after_success:
+  - docker build -t evil2097/multi-client ./client
+  - docker build -t evil2097/multi-nginx ./nginx
+  - docker build -t evil2097/multi-worker ./worker
+  - docker build -t evil2097/multi-server ./server
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID"  --password-stdin
+  - docker push evil2097/multi-client
+  - docker push evil2097/multi-nginx
+  - docker push evil2097/multi-worker
+  - docker push evil2097/multi-server
